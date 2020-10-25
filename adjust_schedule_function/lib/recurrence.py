@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import pytz
 import re
 
+
 def parse_cron_expression(expression):
     pattern = r'^([^\s]+)\s+([^\s]+)((?:\s+[^\s]+){3,4})$'
     match = re.match(pattern, expression)
@@ -18,16 +19,7 @@ def parse_cron_expression(expression):
     }
 
 
-class MockTimeSource:
-    """A time source that allows mocking the current date and time."""
-    def __init__(self, dt):
-        self._dt = dt
-
-    def get_current_utc_datetime(self):
-        return self._dt
-
-
-class DefaultTimeSource:
+class TimeSource:
     """A time source that uses the standard datetime module."""
     def get_current_utc_datetime(self):
         return pytz.utc.localize(datetime.utcnow())
@@ -39,7 +31,7 @@ class RecurrenceCalculator:
     """
     def __init__(self, time_source=None):
         if not time_source:
-            self._time_source = DefaultTimeSource()
+            self._time_source = TimeSource()
         else:
             self._time_source = time_source
 
