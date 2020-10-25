@@ -27,6 +27,6 @@ def lambda_handler(event, context):
 
     if len(results):
         print('Emitting event to bus')
-        bus.emit_process_completed(results)
+        bus.emit_process_completed({'Updates': results})
 
     print("All ASGs have been processed. No further work to do.")
