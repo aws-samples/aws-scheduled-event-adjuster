@@ -1,0 +1,12 @@
+# Python
+__pycache__
+.venv
+.pytest_cache
+
+# SAM
+samconfig.toml
+.aws-sam
+
+# Other ignores
+hello_world_function
+README.md

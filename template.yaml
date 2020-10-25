@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  scheduled-scaling-adjuster
+
+  This solution adjusts the schedules of scheduled Auto Scaling Group scaling
+  actions to account for hour changes due to Daylight Saving Time.
+
+Parameters:
+  NotificationEmail:
+    Type: String
+    Description: The email address that should be notified when relevant events
+      occur.
+
+Globals:
+  Function:
+    Timeout: 10
+
+Resources:
+  AdjustScheduleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: adjust_schedule_function
+      Handler: adjust_schedule/app.lambda_handler
+      Runtime: python3.7
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Action:
+                - 'autoscaling:DescribeAutoScalingGroups'
+                - 'autoscaling:DescribeScheduledActions'
+                - 'autoscaling:BatchPutScheduledUpdateGroupAction'
+              Resource: '*'
+        - EventBridgePutEventsPolicy:
+            EventBusName: default
+
+  Trigger:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - scheduled-scaling-adjuster
+        detail-type:
+          - 'ManualTrigger'
+      ScheduleExpression: cron(0 0,12 * * ? *)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt AdjustScheduleFunction.Arn
+          Id: adjust-schedule-lambda-function
+
+  TriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AdjustScheduleFunction.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt Trigger.Arn
+
+  #
+  # EventBridge subscription to notify about a completion via SNS
+  #
+  CompletionNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: !Ref NotificationEmail
+          Protocol: email
+
+  CompletionNotificationTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: 'CompletionNotificationTopicPolicy'
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'AllowPublishingFromEventBridge'
+            Effect: 'Allow'
+            Principal:
+              Service: 'events.amazonaws.com'
+            Action: 'sns:Publish'
+            Resource: !Ref CompletionNotificationTopic
+      Topics:
+        - !Ref CompletionNotificationTopic
+
+  NotifyOnCompletion:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - scheduled-scaling-adjuster
+        detail-type:
+          - 'ProcessCompleted'
+      State: ENABLED
+      Targets:
+        - Arn: !Ref CompletionNotificationTopic
+          Id: completion-notification-sns-topic
+  #
+  # End of subscription
+  #
