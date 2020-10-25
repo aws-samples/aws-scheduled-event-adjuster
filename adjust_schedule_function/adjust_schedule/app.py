@@ -19,14 +19,14 @@ def lambda_handler(event, context):
 
         try:
             print("Processing ASG '{}'".format(asg_name))
-            results = asg_processor.process_asg(asg)
+            updates = asg_processor.process_asg(asg)
             print("ASG '{}' has been processed successfully".format(asg_name))
         except:
             print("ASG '{}' failed to be processed".format(asg_name))
             raise
 
-    if len(results):
+    if len(updates):
         print('Emitting event to bus')
-        bus.emit_process_completed({'Updates': results})
+        bus.emit_process_completed(updates)
 
     print("All ASGs have been processed. No further work to do.")

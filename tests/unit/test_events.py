@@ -18,7 +18,7 @@ def test_emit_process_completed():
             {
                 'Source': 'scheduled-scaling-adjuster',
                 'DetailType': 'ProcessCompleted',
-                'Detail': '{"foo": "bar"}',
+                'Detail': '{"Updates": [{"foo": "bar"}]}',
                 'EventBusName': 'default'
             }
         ]
@@ -29,5 +29,5 @@ def test_emit_process_completed():
     bus = EventBus(eventbridge_client)
 
     with stubber:
-        response = bus.emit_process_completed({'foo': 'bar'})
+        response = bus.emit_process_completed([{'foo': 'bar'}])
         assert response == mocked_response
