@@ -52,8 +52,8 @@ Thus, the ASG must be tagged accordingly:
 
 * `scheduled-scaling-adjuster:enabled` = (no value)
 * `scheduled-scaling-adjuster:local-timezone` = `Europe/Madrid`
-* `scheduled-scaling-adjuster:lotal-time:MorningScaleOut` = `08:00`
-* `scheduled-scaling-adjuster:lotal-time:EveningScaleIn` = `20:00`
+* `scheduled-scaling-adjuster:local-time:MorningScaleOut` = `08:00`
+* `scheduled-scaling-adjuster:local-time:EveningScaleIn` = `20:00`
 
 ## Roadmap
 
