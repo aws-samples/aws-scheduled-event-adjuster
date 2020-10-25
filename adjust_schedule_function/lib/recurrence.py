@@ -98,7 +98,6 @@ class RecurrenceCalculator:
         # for sure.
 
         recurrence = CronTab(scheduled_action['Recurrence'])
-        utc_now = pytz.utc.localize(datetime.utcnow())
         delta = timedelta(seconds = recurrence.next(default_utc=True) + 1)
         utc_next_run = utc_now + delta
         local_next_run = utc_next_run.astimezone(pytz.timezone(timezone))
