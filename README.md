@@ -70,7 +70,7 @@ sam build --use-container
 The function can be locally invoked using `sam local invoke`. The `events` directory contains test events that can be passed on the function invocation.
 
 ```bash
-sam local invoke HelloWorldFunction --event events/event.json
+sam local invoke AdjustScheduleFunction --event events/event.json
 ```
 
 ### Unit tests
