@@ -1,9 +1,16 @@
 import boto3
 from botocore.stub import Stubber
 from datetime import datetime
-from lib.autoscaling import AutoScalingClient
+from lib.services import AutoScalingService
 import pytest
 
+
+def test_default_client_is_autoscaling_client():
+    service = AutoScalingService()
+
+    client = service.get_client()
+
+    assert client.__module__ + '.' + client.__class__.__qualname__ == 'botocore.client.AutoScaling'
 
 def test_get_asgs():
     asg_boto3_client = boto3.client('autoscaling')
@@ -21,7 +28,7 @@ def test_get_asgs():
     response = {'AutoScalingGroups': [asg]}
     stubber.add_response('describe_auto_scaling_groups', response)
     stubber.activate()
-    client = AutoScalingClient(asg_boto3_client)
+    client = AutoScalingService(asg_boto3_client)
 
     asgs = client.get_asgs()
 
@@ -47,7 +54,7 @@ def test_get_asg_scheduled_actions():
                          response,
                          {'AutoScalingGroupName': 'foo'})
     stubber.activate()
-    client = AutoScalingClient(asg_boto3_client)
+    client = AutoScalingService(asg_boto3_client)
 
     actions = client.get_asg_scheduled_actions('foo')
 

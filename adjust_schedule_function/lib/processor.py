@@ -11,8 +11,8 @@ class AutoScalingGroupProcessor:
     # policy is expected to run.
     LOCAL_TIME_TAG_PREFIX = 'scheduled-scaling-adjuster:local-time:'
 
-    def __init__(self, asg_client, recurrence_calculator):
-        self._asg_client = asg_client
+    def __init__(self, asg_service, recurrence_calculator):
+        self._asg_service = asg_service
         self._recurrence_calculator = recurrence_calculator
 
     def process_asg(self, asg):
@@ -30,7 +30,7 @@ class AutoScalingGroupProcessor:
                                                                                          self.LOCAL_TIMEZONE_TAG))
             return result
 
-        scheduled_actions = self._asg_client.get_asg_scheduled_actions(asg_name)
+        scheduled_actions = self._asg_service.get_asg_scheduled_actions(asg_name)
         scheduled_action_updates = []
 
         for action in scheduled_actions:
@@ -70,7 +70,7 @@ class AutoScalingGroupProcessor:
             print("No scheduled actions need to be updated for ASG '{}'".format(asg_name))
         else:
             print("There are actions which need to be updated. Updating them now.")
-            update_response = self._asg_client.update_asg_scheduled_actions(asg_name,
+            update_response = self._asg_service.update_asg_scheduled_actions(asg_name,
                                                                             scheduled_action_updates)
 
             if len(update_response['FailedScheduledUpdateGroupActions']):

@@ -1,6 +1,6 @@
-from lib.autoscaling import AutoScalingClient
 from lib.processor import AutoScalingGroupProcessor
 from lib.recurrence import RecurrenceCalculator
+from lib.services import AutoScalingService
 import pytest
 
 
@@ -31,12 +31,12 @@ def test_process_asg_with_different_recurrence(mocker):
             'DesiredCapacity': 123
         }
     ]
-    asg_client = AutoScalingClient()
+    asg_client = AutoScalingService()
     recurrence_calculator = RecurrenceCalculator()
     processor = AutoScalingGroupProcessor(asg_client, recurrence_calculator)
-    mocker.patch('lib.autoscaling.AutoScalingClient.get_asg_scheduled_actions',
+    mocker.patch('lib.services.AutoScalingService.get_asg_scheduled_actions',
                  lambda self, x: scheduled_actions)
-    mocker.patch('lib.autoscaling.AutoScalingClient.update_asg_scheduled_actions')
+    mocker.patch('lib.services.AutoScalingService.update_asg_scheduled_actions')
     mocker.patch('lib.recurrence.RecurrenceCalculator.calculate_recurrence',
                  lambda self, action, time, tz: 'NewRecurrence')
 
@@ -88,12 +88,12 @@ def test_process_asg_with_same_recurrence(mocker):
             'DesiredCapacity': 123
         }
     ]
-    asg_client = AutoScalingClient()
+    asg_client = AutoScalingService()
     recurrence_calculator = RecurrenceCalculator()
     processor = AutoScalingGroupProcessor(asg_client, recurrence_calculator)
-    mocker.patch('lib.autoscaling.AutoScalingClient.get_asg_scheduled_actions',
+    mocker.patch('lib.services.AutoScalingService.get_asg_scheduled_actions',
                  lambda self, x: scheduled_actions)
-    mocker.patch('lib.autoscaling.AutoScalingClient.update_asg_scheduled_actions')
+    mocker.patch('lib.services.AutoScalingService.update_asg_scheduled_actions')
     mocker.patch('lib.recurrence.RecurrenceCalculator.calculate_recurrence',
                  lambda self, action, time, tz: 'OriginalRecurrence')
 
@@ -108,7 +108,7 @@ def test_process_asg_without_enabled_tag():
         'AutoScalingGroupARN': 'MyAsgARN',
         'Tags': []
     }
-    asg_client = AutoScalingClient()
+    asg_client = AutoScalingService()
     recurrence_calculator = RecurrenceCalculator()
     processor = AutoScalingGroupProcessor(asg_client, recurrence_calculator)
 
@@ -122,7 +122,7 @@ def test_process_asg_without_timezone_tag():
         'AutoScalingGroupARN': 'MyAsgARN',
         'Tags': [{'Key': 'scheduled-scaling-adjuster:enabled', 'Value': ''}]
     }
-    asg_client = AutoScalingClient()
+    asg_client = AutoScalingService()
     recurrence_calculator = RecurrenceCalculator()
     processor = AutoScalingGroupProcessor(asg_client, recurrence_calculator)
 
@@ -147,10 +147,10 @@ def test_process_asg_without_action_time_tag(mocker):
             'DesiredCapacity': 123
         }
     ]
-    asg_client = AutoScalingClient()
+    asg_client = AutoScalingService()
     recurrence_calculator = RecurrenceCalculator()
     processor = AutoScalingGroupProcessor(asg_client, recurrence_calculator)
-    mocker.patch('lib.autoscaling.AutoScalingClient.get_asg_scheduled_actions',
+    mocker.patch('lib.services.AutoScalingService.get_asg_scheduled_actions',
                  lambda self, x: scheduled_actions)
 
     result = processor.process_asg(asg)

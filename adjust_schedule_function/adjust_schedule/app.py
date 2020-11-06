@@ -1,20 +1,20 @@
 import boto3
-from lib.autoscaling import AutoScalingClient
 from lib.events import EventBus
 from lib.processor import AutoScalingGroupProcessor
 from lib.recurrence import RecurrenceCalculator
+from lib.services import AutoScalingService
 from lib import utils
 import logging
 import os
 
 
-asg_client = AutoScalingClient(boto3.client('autoscaling'))
-asg_processor = AutoScalingGroupProcessor(asg_client, RecurrenceCalculator())
+asg_service = AutoScalingService(boto3.client('autoscaling'))
+asg_processor = AutoScalingGroupProcessor(asg_service, RecurrenceCalculator())
 bus = EventBus(boto3.client('events'))
 
 
 def lambda_handler(event, context):
-    for asg in asg_client.get_asgs():
+    for asg in asg_service.get_asgs():
         asg_name = asg['AutoScalingGroupName']
 
         try:
