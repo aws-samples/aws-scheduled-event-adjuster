@@ -36,11 +36,12 @@ def get_calculate_recurrence_inputs():
     return [
         # Recurrence is wrong
         ('Europe/Madrid', '11:00', datetime(2019, 1, 1), datetime(2020, 1, 1), '30 0 * * *', '0 10 * * *'),
+        ('Europe/Madrid', '11:00', None, datetime(2020, 1, 1), '30 0 * * *', '0 10 * * *'),
         ('Europe/Madrid', '23:30', datetime(2019, 1, 1), datetime(2020, 1, 1), '15 8 * * *', '30 22 * * *'),
         # Recurrence is already correct
         ('Europe/Madrid', '11:00', datetime(2019, 1, 1), datetime(2020, 1, 1), '0 10 * * *', '0 10 * * *'),
         ('Europe/Madrid', '23:30', datetime(2019, 1, 1), datetime(2020, 1, 1), '30 22 * * *', '30 22 * * *'),
-        # Action start date is over a day into the future
+        # Start date is over a day into the future
         ('Europe/Madrid', '11:00', datetime(2020, 1, 3), datetime(2020, 1, 1), '0 15 * * *', '0 15 * * *'),
     ]
 
@@ -53,18 +54,15 @@ def test_calculate_recurrence(tz,
                               current_recurrence,
                               expected_recurrence,
                               mocker):
-    action = {
-        'AutoScalingGroupName': 'asg',
-        'ScheduledActionName': 'action',
-        'StartTime': start,
-        'Recurrence': current_recurrence
-    }
     time_source = TimeSource()
     calculator = RecurrenceCalculator(time_source)
     mocker.patch('lib.recurrence.TimeSource.get_current_utc_datetime',
                  lambda self: now)
 
-    calculated_recurrence = calculator.calculate_recurrence(action, lt, tz)
+    calculated_recurrence = calculator.calculate_recurrence(current_recurrence=current_recurrence,
+                                                            expected_time=lt,
+                                                            timezone=tz,
+                                                            start_time=start)
 
     assert calculated_recurrence == expected_recurrence
 
@@ -76,14 +74,11 @@ def test_calculate_recurrence(tz,
     '0,1 0 * * *'
 ])
 def test_calculate_recurrence_with_unsupported_recurrences(recurrence):
-    action = {
-        'AutoScalingGroupName': 'asg',
-        'ScheduledActionName': 'action',
-        'StartTime': datetime(2020, 1, 1),
-        'Recurrence': recurrence
-    }
     calculator = RecurrenceCalculator()
 
 
     with pytest.raises(NotImplementedError):
-        calculated_recurrence = calculator.calculate_recurrence(action, '00:00', 'Europe/Madrid')
+        calculated_recurrence = calculator.calculate_recurrence(current_recurrence=recurrence,
+                                                                expected_time='00:00',
+                                                                timezone='Europe/Madrid',
+                                                                start_time=datetime(2020, 1, 1))

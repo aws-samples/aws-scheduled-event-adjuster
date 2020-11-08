@@ -52,3 +52,28 @@ class EventBridgeService:
         for page in paginator.paginate(EventBusName='default'):
             result = result + [rule for rule in page['Rules'] if 'ScheduleExpression' in rule]
         return result
+
+    def get_rule_tags(self, rule_arn):
+        """Returns all tags for the EventBridge rule with the specified ARN.
+
+        Args:
+            rule_arn:
+                The ARN of the EventBridge rule.
+
+        Returns:
+            A list of tag dicts:
+
+            [{'Key': 'Foo', 'Value': 'Bar'}]
+        """
+        return self._client.list_tags_for_resource(ResourceARN=rule_arn)['Tags']
+
+    def update_rule_schedule(self, rule_name, schedule):
+        """Update the schedule of the rule with the specified name.
+
+        Args:
+            rule_name:
+                The name of the EventBridge rule.
+            schedule:
+                The new schedule of the rule, as a valid schedule expression.
+        """
+        return self._client.put_rule(Name=rule_name, ScheduleExpression=schedule)

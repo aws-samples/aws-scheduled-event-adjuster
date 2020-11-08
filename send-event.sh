@@ -4,7 +4,7 @@ aws events put-events \
 	--entries '[
 		{
 			"EventBusName": "default",
-			"Source": "scheduled-scaling-adjuster",
+			"Source": "scheduled-event-adjuster",
 			"DetailType": "ManualTrigger",
 			"Detail": "{}"
 		}

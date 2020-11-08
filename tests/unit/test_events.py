@@ -16,7 +16,7 @@ def test_emit_process_completed():
     expected_params = {
         'Entries': [
             {
-                'Source': 'scheduled-scaling-adjuster',
+                'Source': 'scheduled-event-adjuster',
                 'DetailType': 'ProcessCompleted',
                 'Detail': '{"Updates": [{"foo": "bar"}]}',
                 'EventBusName': 'default'

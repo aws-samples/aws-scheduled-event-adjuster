@@ -4,7 +4,7 @@ class Event:
     PROCESS_COMPLETED = 'ProcessCompleted'
 
 class EventBus:
-    SOURCE = 'scheduled-scaling-adjuster'
+    SOURCE = 'scheduled-event-adjuster'
     BUS_NAME = 'default'
 
     def __init__(self, eventbridge_client):

@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Description: >
-  scheduled-scaling-adjuster
+  scheduled-event-adjuster
 
   This solution adjusts the schedules of scheduled Auto Scaling Group scaling
   actions to account for hour changes due to Daylight Saving Time.
@@ -28,11 +28,19 @@ Resources:
       Policies:
         - Version: '2012-10-17'
           Statement:
-            - Effect: 'Allow'
+            - Sid: 'AllowProcessingAutoScalingGroups'
+              Effect: 'Allow'
               Action:
                 - 'autoscaling:DescribeAutoScalingGroups'
                 - 'autoscaling:DescribeScheduledActions'
                 - 'autoscaling:BatchPutScheduledUpdateGroupAction'
+              Resource: '*'
+            - Sid: 'AllowProcessingEventBridgeRules'
+              Effect: 'Allow'
+              Action:
+                - 'events:ListRules'
+                - 'events:ListTagsForResource'
+                - 'events:PutRule'
               Resource: '*'
         - EventBridgePutEventsPolicy:
             EventBusName: default
@@ -42,7 +50,7 @@ Resources:
     Properties:
       EventPattern:
         source:
-          - scheduled-scaling-adjuster
+          - scheduled-event-adjuster
         detail-type:
           - 'ManualTrigger'
       ScheduleExpression: cron(0 0,12 * * ? *)
@@ -90,7 +98,7 @@ Resources:
     Properties:
       EventPattern:
         source:
-          - scheduled-scaling-adjuster
+          - scheduled-event-adjuster
         detail-type:
           - 'ProcessCompleted'
       State: ENABLED

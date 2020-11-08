@@ -30,3 +30,27 @@ def test_get_scheduled_rules():
 
     assert len(rules) == 1
     assert rules[0] == scheduled_rule
+
+def test_get_rule_tags():
+    eventbridge_boto3_client = boto3.client('events')
+    stubber = Stubber(eventbridge_boto3_client)
+    stubber.add_response('list_tags_for_resource',
+                        {'Tags': [{'Key': 'foo', 'Value': 'bar'}]},
+                        {'ResourceARN': 'theArn'})
+    stubber.activate()
+    service = EventBridgeService(eventbridge_boto3_client)
+
+    tags = service.get_rule_tags('theArn')
+
+    assert tags == [{'Key': 'foo', 'Value': 'bar'}]
+
+def test_update_rule_schedule():
+    eventbridge_boto3_client = boto3.client('events')
+    stubber = Stubber(eventbridge_boto3_client)
+    stubber.add_response('put_rule',
+                        {'RuleArn': 'theArn'},
+                        {'Name': 'theName', 'ScheduleExpression': 'foo'})
+    stubber.activate()
+    service = EventBridgeService(eventbridge_boto3_client)
+
+    tags = service.update_rule_schedule('theName', 'foo')

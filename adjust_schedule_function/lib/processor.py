@@ -2,22 +2,33 @@ from lib import utils
 
 class AutoScalingGroupProcessor:
     # The tag that determines whether the ASG should be processed by this script.
-    ENABLED_TAG = 'scheduled-scaling-adjuster:enabled'
+    ENABLED_TAG = 'scheduled-event-adjuster:enabled'
 
     # The tag that determines the timezone of the local time.
-    LOCAL_TIMEZONE_TAG = 'scheduled-scaling-adjuster:local-timezone'
+    LOCAL_TIMEZONE_TAG = 'scheduled-event-adjuster:local-timezone'
 
     # The prefix of the tag that determines the local time at which the scaling
     # policy is expected to run.
-    LOCAL_TIME_TAG_PREFIX = 'scheduled-scaling-adjuster:local-time:'
+    LOCAL_TIME_TAG_PREFIX = 'scheduled-event-adjuster:local-time:'
 
     def __init__(self, asg_service, recurrence_calculator):
         self._asg_service = asg_service
         self._recurrence_calculator = recurrence_calculator
 
-    def process_asg(self, asg):
+    def process_resources(self):
+        changes = []
+
+        asgs = self._asg_service.get_asgs()
+        for asg in asgs:
+            changes = changes + self._process_asg(asg)
+
+        return changes
+
+    def _process_asg(self, asg):
         result = []
         asg_name = asg['AutoScalingGroupName']
+
+        print("Processing ASG '{}'".format(asg_name))
 
         if utils.get_tag_by_key(asg['Tags'], self.ENABLED_TAG) == None:
             print("Skipping: ASG '{}' is not enabled (missing tag '{}')".format(asg_name,
@@ -46,7 +57,7 @@ class AutoScalingGroupProcessor:
 
             print("Processing action '{}'".format(action_name))
 
-            correct_recurrence = self._recurrence_calculator.calculate_recurrence(action,
+            correct_recurrence = self._recurrence_calculator.calculate_recurrence(current_recurrence,
                                                                                   local_time,
                                                                                   local_timezone)
             if correct_recurrence != current_recurrence:
@@ -59,11 +70,14 @@ class AutoScalingGroupProcessor:
                 })
 
                 result.append({
-                    'ActionName': action_name,
-                    'AsgName': asg_name,
-                    'LocalTime': local_time,
+                    'Type': 'AutoScalingGroupScalingPolicy',
+                    'ResourceName': asg_name,
+                    'ResourceArn': asg['AutoScalingGroupARN'],
                     'OriginalRecurrence': current_recurrence,
-                    'NewRecurrence': correct_recurrence
+                    'NewRecurrence': correct_recurrence,
+                    'LocalTime': local_time,
+                    'LocalTimezone': local_timezone,
+                    'AdditionalDetails': {'ActionName': action_name}
                 })
 
         if not len(scheduled_action_updates):
