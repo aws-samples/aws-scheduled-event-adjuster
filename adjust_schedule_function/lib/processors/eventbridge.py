@@ -1,16 +1,7 @@
 from lib import utils
+from lib.processors.base import ResourceProcessor
 
-class EventBridgeProcessor:
-    # The tag that determines whether the resource should be processed by this script.
-    ENABLED_TAG = 'scheduled-event-adjuster:enabled'
-
-    # The tag that determines the timezone of the local time.
-    LOCAL_TIMEZONE_TAG = 'scheduled-event-adjuster:local-timezone'
-
-    # The tag that determines the local time at which the scheduled event is
-    # expected to run.
-    LOCAL_TIME_TAG = 'scheduled-event-adjuster:local-time'
-
+class EventBridgeProcessor(ResourceProcessor):
     def __init__(self, eventbridge_service, recurrence_calculator):
         self._eventbridge_service = eventbridge_service
         self._recurrence_calculator = recurrence_calculator

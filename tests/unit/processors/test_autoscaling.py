@@ -1,4 +1,4 @@
-from lib.processor import AutoScalingGroupProcessor
+from lib.processors.autoscaling import AutoScalingGroupProcessor
 from lib.recurrence import RecurrenceCalculator
 from lib.services import AutoScalingService
 import pytest

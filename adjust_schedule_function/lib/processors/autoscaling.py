@@ -1,16 +1,7 @@
 from lib import utils
+from lib.processors.base import ResourceProcessor
 
-class AutoScalingGroupProcessor:
-    # The tag that determines whether the ASG should be processed by this script.
-    ENABLED_TAG = 'scheduled-event-adjuster:enabled'
-
-    # The tag that determines the timezone of the local time.
-    LOCAL_TIMEZONE_TAG = 'scheduled-event-adjuster:local-timezone'
-
-    # The prefix of the tag that determines the local time at which the scaling
-    # policy is expected to run.
-    LOCAL_TIME_TAG_PREFIX = 'scheduled-event-adjuster:local-time:'
-
+class AutoScalingGroupProcessor(ResourceProcessor):
     def __init__(self, asg_service, recurrence_calculator):
         self._asg_service = asg_service
         self._recurrence_calculator = recurrence_calculator
@@ -48,11 +39,10 @@ class AutoScalingGroupProcessor:
             action_name = action['ScheduledActionName']
             current_recurrence = action['Recurrence']
 
-            local_time = utils.get_tag_by_key(asg['Tags'],
-                                              self.LOCAL_TIME_TAG_PREFIX + action_name)
+            local_time_tag_key = self.LOCAL_TIME_TAG + ':' + action_name
+            local_time = utils.get_tag_by_key(asg['Tags'], local_time_tag_key)
             if not local_time:
-                print("Skipping: action '{}' does not have local time tag (missing tag '{}')".format(action_name,
-                                                                                                     self.LOCAL_TIME_TAG_PREFIX + action_name))
+                print("Skipping: action '{}' does not have local time tag (missing tag '{}')".format(action_name, local_time_tag_key))
                 continue
 
             print("Processing action '{}'".format(action_name))

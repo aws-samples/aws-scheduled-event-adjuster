@@ -1,6 +1,6 @@
 import boto3
 from lib.events import EventBus
-from lib.processor import AutoScalingGroupProcessor
+from lib.processors.autoscaling import AutoScalingGroupProcessor
 from lib.processors.eventbridge import EventBridgeProcessor
 from lib.recurrence import RecurrenceCalculator
 from lib.services import AutoScalingService, EventBridgeService
