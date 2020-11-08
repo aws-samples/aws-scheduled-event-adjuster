@@ -57,7 +57,7 @@ def test_process_resources_skips_update_when_an_exception_is_thrown_when_updatin
     assert len(changes) == 0
 
 def test_process_resources_with_same_recurrence(mocker):
-    rules = [{'Arn': 'ruleArn', 'ScheduleExpression': 'cron(foo)'}]
+    rules = [{'Name': 'ruleName', 'Arn': 'ruleArn', 'ScheduleExpression': 'cron(foo)'}]
     tags = [
         {'Key': 'scheduled-event-adjuster:enabled', 'Value': ''},
         {'Key': 'scheduled-event-adjuster:local-timezone', 'Value': 'Europe/Madrid'}
@@ -75,7 +75,7 @@ def test_process_resources_with_same_recurrence(mocker):
     assert len(changes) == 0
 
 def test_process_resources_without_enabled_tag(mocker):
-    rules = [{'Arn': 'ruleArn'}]
+    rules = [{'Name': 'ruleName', 'Arn': 'ruleArn'}]
     tags = [{'Key': 'nope', 'Value': 'nope'}]
     eb_svc = EventBridgeService()
     rec_calc = RecurrenceCalculator()
@@ -89,7 +89,7 @@ def test_process_resources_without_enabled_tag(mocker):
     assert len(changes) == 0
 
 def test_process_resources_without_timezone_tag(mocker):
-    rules = [{'Arn': 'ruleArn'}]
+    rules = [{'Name': 'ruleName', 'Arn': 'ruleArn'}]
     tags = [{'Key': 'scheduled-event-adjuster:enabled', 'Value': ''}]
     eb_svc = EventBridgeService()
     rec_calc = RecurrenceCalculator()
@@ -103,7 +103,7 @@ def test_process_resources_without_timezone_tag(mocker):
     assert len(changes) == 0
 
 def test_process_resources_without_local_time_tag(mocker):
-    rules = [{'Arn': 'ruleArn'}]
+    rules = [{'Name': 'ruleName', 'Arn': 'ruleArn'}]
     tags = [
         {'Key': 'scheduled-event-adjuster:enabled', 'Value': ''},
         {'Key': 'scheduled-event-adjuster:local-timezone', 'Value': 'Europe/Madrid'},
