@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  scheduled-event-adjuster-pipeline
+
+  This template builds the CI/CD pipeline used to package the
+  scheduled-event-adjuster solution.
+
+Parameters:
+  GitHubRepository:
+    Type: String
+    Description: The full name of the GitHub repository that triggers the
+      build.
+
+Resources:
+  RepoConnection:
+    Type: AWS::CodeStarConnections::Connection
+    Properties:
+      ConnectionName: aws-scheduled-event-adjuster
+      ProviderType: GitHub
+
+  PipelineArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    # Avoid deletion failures due to non-empty bucket
+    DeletionPolicy: Retain
+
+  SolutionBucket:
+    Type: AWS::S3::Bucket
+    # Avoid deletion failures due to non-empty bucket
+    DeletionPolicy: Retain
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: 'ArtifactUploadPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 's3:ListBuckets'
+                Resource: '*'
+              - Effect: 'Allow'
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                Resource:
+                  - !Sub '${SolutionBucket.Arn}'
+                  - !Sub '${SolutionBucket.Arn}/*'
+                  - !Sub '${PipelineArtifactStoreBucket.Arn}'
+                  - !Sub '${PipelineArtifactStoreBucket.Arn}/*'
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:*'
+                Resource: '*'
+      # ManagedPolicyArns:
+      #   - arn:aws:iam::aws:policy/AdministratorAccess
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        ArtifactIdentifier: SourceArtifact
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: SOLUTION_BUCKET
+            Type: PLAINTEXT
+            Value: !Ref SolutionBucket
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      ServiceRole: !Ref CodeBuildServiceRole
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: ./buildspec.yaml
+
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  CodePipelinePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref PipelineArtifactStoreBucket
+        Type: S3
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn: !Ref RepoConnection
+                FullRepositoryId: !Ref GitHubRepository
+                BranchName: master
+              OutputArtifacts:
+                - Name: SourceArtifact
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
