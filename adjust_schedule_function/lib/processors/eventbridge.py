@@ -2,7 +2,8 @@ from lib import utils
 from lib.processors.base import ResourceProcessor
 
 class EventBridgeProcessor(ResourceProcessor):
-    def __init__(self, eventbridge_service, recurrence_calculator):
+    def __init__(self, tag_prefix, eventbridge_service, recurrence_calculator):
+        super().__init__(tag_prefix)
         self._eventbridge_service = eventbridge_service
         self._recurrence_calculator = recurrence_calculator
 
@@ -17,22 +18,22 @@ class EventBridgeProcessor(ResourceProcessor):
 
                 tags = self._eventbridge_service.get_rule_tags(rule['Arn'])
 
-                if utils.get_tag_by_key(tags, self.ENABLED_TAG) == None:
+                if utils.get_tag_by_key(tags, self._get_enabled_tag()) == None:
                     print("Skipping: EventBridge rule '{}' is not enabled (missing tag '{}')".format(rule['Name'],
-                                                                                                     self.ENABLED_TAG))
+                                                                                                     self._get_enabled_tag()))
                     continue
 
-                local_timezone = utils.get_tag_by_key(tags, self.LOCAL_TIMEZONE_TAG)
-                local_time = utils.get_tag_by_key(tags, self.LOCAL_TIME_TAG)
+                local_timezone = utils.get_tag_by_key(tags, self._get_local_timezone_tag())
+                local_time = utils.get_tag_by_key(tags, self._get_local_time_tag())
 
                 if not local_timezone:
                     print("Skipping: EventBridge rule '{}' has no timezone defined (missing tag '{}')".format(rule['Name'],
-                                                                                                              self.LOCAL_TIMEZONE_TAG))
+                                                                                                              self._get_local_timezone_tag()))
                     continue
 
                 if not local_time:
                     print("Skipping: EventBridge rule '{}' does not have local time tag (missing tag '{}')".format(rule['Name'],
-                                                                                                                   self.LOCAL_TIME_TAG))
+                                                                                                                   self._get_local_time_tag()))
                     continue
 
                 # Remove the 'cron()' surrounding the cron expression itself,

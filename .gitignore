@@ -8,4 +8,5 @@ samconfig.toml
 .aws-sam
 
 # Other ignores
+envs.json
 hello_world_function

@@ -2,7 +2,8 @@ from lib import utils
 from lib.processors.base import ResourceProcessor
 
 class AutoScalingGroupProcessor(ResourceProcessor):
-    def __init__(self, asg_service, recurrence_calculator):
+    def __init__(self, tag_prefix, asg_service, recurrence_calculator):
+        super().__init__(tag_prefix)
         self._asg_service = asg_service
         self._recurrence_calculator = recurrence_calculator
 
@@ -21,15 +22,15 @@ class AutoScalingGroupProcessor(ResourceProcessor):
 
         print("Processing ASG '{}'".format(asg_name))
 
-        if utils.get_tag_by_key(asg['Tags'], self.ENABLED_TAG) == None:
+        if utils.get_tag_by_key(asg['Tags'], self._get_enabled_tag()) == None:
             print("Skipping: ASG '{}' is not enabled (missing tag '{}')".format(asg_name,
-                                                                                self.ENABLED_TAG))
+                                                                                self._get_enabled_tag()))
             return result
 
-        local_timezone = utils.get_tag_by_key(asg['Tags'], self.LOCAL_TIMEZONE_TAG)
+        local_timezone = utils.get_tag_by_key(asg['Tags'], self._get_local_timezone_tag())
         if not local_timezone:
             print("Skipping: ASG '{}' has no timezone defined (missing tag '{}')".format(asg_name,
-                                                                                         self.LOCAL_TIMEZONE_TAG))
+                                                                                         self._get_local_timezone_tag()))
             return result
 
         scheduled_actions = self._asg_service.get_asg_scheduled_actions(asg_name)
@@ -39,7 +40,7 @@ class AutoScalingGroupProcessor(ResourceProcessor):
             action_name = action['ScheduledActionName']
             current_recurrence = action['Recurrence']
 
-            local_time_tag_key = self.LOCAL_TIME_TAG + ':' + action_name
+            local_time_tag_key = self._get_local_time_tag() + ':' + action_name
             local_time = utils.get_tag_by_key(asg['Tags'], local_time_tag_key)
             if not local_time:
                 print("Skipping: action '{}' does not have local time tag (missing tag '{}')".format(action_name, local_time_tag_key))

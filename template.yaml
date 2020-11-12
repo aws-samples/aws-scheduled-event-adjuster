@@ -13,6 +13,11 @@ Parameters:
     Type: String
     Description: The email address that should be notified when relevant events
       occur.
+  TagPrefix:
+    Type: String
+    Description: (Optional) The tag prefix to use when checking resources'
+      tags. Leave empty to use the default prefix.
+    Default: 'scheduled-event-adjuster'
 
 Globals:
   Function:
@@ -25,6 +30,9 @@ Resources:
       CodeUri: adjust_schedule_function
       Handler: adjust_schedule/app.lambda_handler
       Runtime: python3.7
+      Environment:
+        Variables:
+          TAG_PREFIX: !Ref TagPrefix
       Policies:
         - Version: '2012-10-17'
           Statement:

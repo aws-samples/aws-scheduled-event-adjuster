@@ -67,6 +67,16 @@ We have one EventBridge rule which must trigger at 12:00 in the local time of Li
 * `scheduled-event-adjuster:local-timezone` = `Europe/Lisbon`
 * `scheduled-event-adjuster:local-time` = `12:00`
 
+### Using custom tag prefixes
+
+As explained above, the solution expects all tags to be prefixed with `scheduled-event-adjuster` by default. However, this behavior can be customized by providing a value as the `TagPrefix` SAM parameter. If the solution were deployed like this:
+
+```
+sam deploy --parameter-overrides "TagPrefix=foo"
+```
+
+Then it would act on resources tagged with `foo:enabled` instead `scheduled-event-adjuster:enabled`.
+
 ## Roadmap
 
 These are the features we're working on:
@@ -88,6 +98,12 @@ The function can be locally invoked using `sam local invoke`. The `events` direc
 
 ```bash
 sam local invoke AdjustScheduleFunction --event events/event.json
+```
+
+If you want to define environment variables for the function, copy and modify `envs.dist.json` (for example, to `envs.json`) and then use it when invoking the function:
+
+```bash
+sam local invoke AdjustScheduleFunction --event events/event.json -n envs.json
 ```
 
 ### Unit tests

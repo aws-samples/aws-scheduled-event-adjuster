@@ -9,11 +9,15 @@ import logging
 import os
 
 
+tag_prefix = ''
+if 'TAG_PREFIX' in os.environ and os.environ['TAG_PREFIX'].strip():
+    tag_prefix = os.environ['TAG_PREFIX'].strip()
+
 asg_service = AutoScalingService(boto3.client('autoscaling'))
 eventbridge_service = EventBridgeService(boto3.client('events'))
 processors = [
-    AutoScalingGroupProcessor(asg_service, RecurrenceCalculator()),
-    EventBridgeProcessor(eventbridge_service, RecurrenceCalculator()),
+    AutoScalingGroupProcessor(tag_prefix, asg_service, RecurrenceCalculator()),
+    EventBridgeProcessor(tag_prefix, eventbridge_service, RecurrenceCalculator()),
 ]
 bus = EventBus(boto3.client('events'))
 
