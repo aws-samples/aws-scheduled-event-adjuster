@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from lib.processors.eventbridge import EventBridgeProcessor
 from lib.recurrence import RecurrenceCalculator
 from lib.services import EventBridgeService

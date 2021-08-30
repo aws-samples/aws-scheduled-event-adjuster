@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from crontab import CronTab
 from dateutil import parser
 from datetime import datetime, timedelta
