@@ -1,0 +1,4 @@
+boto3==1.16.4
+crontab==0.22.9
+python-dateutil==2.8.1
+pytz==2020.1

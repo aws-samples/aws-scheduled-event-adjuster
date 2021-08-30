@@ -1,0 +1,13 @@
+{
+  "version": "0",
+  "id": "3d956a44-5259-406c-c9e6-ea038c7877e6",
+  "detail-type": "Scheduled Event",
+  "source": "aws.events",
+  "account": "012345678901",
+  "time": "2020-10-21T17:54:15Z",
+  "region": "eu-west-1",
+  "resources": [
+    "arn:aws:events:eu-west-1:012345678901:rule/scheduled"
+  ],
+  "detail": {}
+}

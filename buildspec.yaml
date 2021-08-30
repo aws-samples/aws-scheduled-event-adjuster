@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  variables:
+    SAM_CLI_TELEMETRY: '0'
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - pip install -r adjust_schedule_function/requirements.txt
+      - pip install awscli aws-sam-cli pytest pytest-mock
+
+  build:
+    commands:
+      - python -m pytest tests/ -v
+      - sam build
+
+  post_build:
+    commands:
+      - sam package --template template.yaml --s3-bucket $SOLUTION_BUCKET --s3-prefix sam-artifacts --output-template-file aws-scheduled-event-scaling.template.yaml
+      - aws s3 cp aws-scheduled-event-scaling.template.yaml s3://$SOLUTION_BUCKET/
+
+artifacts:
+  files:
+    - aws-scheduled-event-scaling.template.yaml
+  discard-paths: yes
